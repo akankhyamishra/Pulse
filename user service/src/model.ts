@@ -1,5 +1,16 @@
 import mongoose, { Document, Schema } from "mongoose";
 
+export interface IWeatherData {
+  city: string;
+  country: string;
+  condition: string;   // "Clear", "Rain", "Snow", etc.
+  description: string; // "light rain", "clear sky"
+  temp: number;        // Celsius
+  icon: string;        // weather emoji
+  weatherCode: number; // Open-Meteo WMO code
+  fetchedAt: Date;
+}
+
 export interface IListenEvent {
   songId: string;
   songTitle: string;
@@ -19,6 +30,16 @@ export interface ISavedAlbum {
   savedAt: Date;
 }
 
+export interface IScreenshotSearch {
+  imageUrl: string;
+  songTitle: string;
+  artist: string;
+  confidence: string;
+  sourceType: string;
+  tracksFound: number;
+  searchedAt: Date;
+}
+
 export interface IUser extends Document {
   name: string;
   email: string;
@@ -29,6 +50,10 @@ export interface IUser extends Document {
   listeningHistory: IListenEvent[];
   savedAlbums: ISavedAlbum[];
   customPlaylists: ICustomPlaylist[];
+  currentRoom?: string;
+  roomJoinedAt?: Date;
+  lastWeather?: IWeatherData;
+  screenshotSearches: IScreenshotSearch[];
 }
 
 const listenEventSchema = new Schema<IListenEvent>(
@@ -89,6 +114,33 @@ const savedAlbumSchema = new Schema<ISavedAlbum>(
   { _id: false }
 );
 
+const weatherSchema = new Schema<IWeatherData>(
+  {
+    city:        { type: String },
+    country:     { type: String },
+    condition:   { type: String },
+    description: { type: String },
+    temp:        { type: Number },
+    icon:        { type: String },
+    weatherCode: { type: Number },
+    fetchedAt:   { type: Date, default: Date.now },
+  },
+  { _id: false }
+);
+
+const screenshotSearchSchema = new Schema<IScreenshotSearch>(
+  {
+    imageUrl:    { type: String },
+    songTitle:   { type: String },
+    artist:      { type: String },
+    confidence:  { type: String },
+    sourceType:  { type: String },
+    tracksFound: { type: Number, default: 0 },
+    searchedAt:  { type: Date, default: Date.now },
+  },
+  { _id: false }
+);
+
 const schema: Schema<IUser> = new Schema(
   {
     name:     { type: String, required: true },
@@ -96,10 +148,14 @@ const schema: Schema<IUser> = new Schema(
     password: { type: String, required: true },
     role:     { type: String, default: "user" },
     playlist: [{ type: String }],
-    followedArtists:  [{ type: String }],
-    listeningHistory: { type: [listenEventSchema],     default: [] },
-    savedAlbums:      { type: [savedAlbumSchema],      default: [] },
-    customPlaylists:  { type: [customPlaylistSchema],  default: [] },
+    followedArtists:    [{ type: String }],
+    listeningHistory:   { type: [listenEventSchema],       default: [] },
+    savedAlbums:        { type: [savedAlbumSchema],        default: [] },
+    customPlaylists:    { type: [customPlaylistSchema],    default: [] },
+    screenshotSearches: { type: [screenshotSearchSchema],  default: [] },
+    currentRoom:        { type: String, default: null },
+    roomJoinedAt:       { type: Date },
+    lastWeather:        { type: weatherSchema },
   },
   { timestamps: true }
 );

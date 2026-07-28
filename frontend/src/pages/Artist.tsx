@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import { Song, useSongData } from "../context/SongContext";
@@ -138,7 +138,7 @@ const Artist = () => {
             <button
               onClick={() => tracks.length > 0 && playTrack(tracks[0])}
               className="w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-110 active:scale-95"
-              style={{ background: "#1db954", boxShadow: "0 8px 28px rgba(29,185,84,0.45)" }}
+              style={{ background: "#06b6d4", boxShadow: "0 8px 28px rgba(6,182,212,0.45)" }}
             >
               <FaPlay className="text-black text-xl ml-1" />
             </button>
@@ -166,7 +166,7 @@ const Artist = () => {
                     ? "bg-green-500 text-black border-green-500 shadow-lg"
                     : "text-white border-white/30 hover:border-white"
                 }`}
-                style={isFollowing ? { boxShadow: "0 4px 16px rgba(29,185,84,0.35)" } : {}}
+                style={isFollowing ? { boxShadow: "0 4px 16px rgba(6,182,212,0.35)" } : {}}
               >
                 {isFollowing ? "Following ✓" : "Follow"}
               </button>

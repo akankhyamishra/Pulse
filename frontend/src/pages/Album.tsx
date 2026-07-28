@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+﻿import { useParams } from "react-router-dom";
 import Layout from "../components/Layout";
 import { useSongData } from "../context/SongContext";
 import { useEffect } from "react";
@@ -31,7 +31,7 @@ const Album = () => {
           {/* Header */}
           <div
             className="flex gap-6 p-6 rounded-xl mb-6 mt-2 items-end"
-            style={{ background: "linear-gradient(180deg, rgba(29,185,84,0.18) 0%, rgba(29,185,84,0.04) 100%)" }}
+            style={{ background: "linear-gradient(180deg, rgba(6,182,212,0.18) 0%, rgba(6,182,212,0.04) 100%)" }}
           >
             <img
               src={albumData.thumbnail}
@@ -46,7 +46,7 @@ const Album = () => {
 
               {/* Artist row with follow button */}
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: "linear-gradient(135deg, #1db954, #7c3aed)" }}>
+                <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: "linear-gradient(135deg, #06b6d4, #0891b2)" }}>
                   <FaUserAlt className="text-white text-[10px]" />
                 </div>
                 <span className="text-white text-sm font-semibold">{albumData.description}</span>
@@ -76,7 +76,7 @@ const Album = () => {
           <div className="flex items-center gap-6 px-2 mb-6">
             <button
               className="w-14 h-14 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95"
-              style={{ background: "#1db954", boxShadow: "0 8px 24px rgba(29,185,84,0.4)" }}
+              style={{ background: "#06b6d4", boxShadow: "0 8px 24px rgba(6,182,212,0.4)" }}
               onClick={() => {
                 if (albumSong.length > 0) {
                   setSelectedSong(albumSong[0].id);

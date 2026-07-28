@@ -201,67 +201,100 @@ export const removeSongFromPlaylist = TryCatch(async (req: AuthenticatedRequest,
   res.json({ message: "Song removed", playlist: pl });
 });
 
+// ─── Shared helpers ───────────────────────────────────────────────────────────
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const COOKIE_OPTS = {
+  httpOnly: true,
+  secure:   process.env.NODE_ENV === "production",
+  sameSite: "lax" as const,
+  maxAge:   7 * 24 * 60 * 60 * 1000, // 7 days
+  path:     "/",
+};
+
+function issueToken(userId: unknown): string {
+  return jwt.sign({ _id: userId }, process.env.JWT_SEC as string, { expiresIn: "7d" });
+}
+
+// ─── Auth ─────────────────────────────────────────────────────────────────────
+
 export const registerUser = TryCatch(async (req, res) => {
-  const { name, email, password } = req.body;
-  let user = await User.findOne({ email });
+  const { name, email, password } = req.body as {
+    name: string; email: string; password: string;
+  };
 
-  if (user) {
-    res.status(400).json({
-      message: "User Already exists",
-    });
-
+  // Input validation
+  if (!name || name.trim().length < 2) {
+    res.status(400).json({ message: "Name must be at least 2 characters" });
+    return;
+  }
+  if (!EMAIL_RE.test(email)) {
+    res.status(400).json({ message: "Invalid email address" });
+    return;
+  }
+  if (!password || password.length < 8) {
+    res.status(400).json({ message: "Password must be at least 8 characters" });
     return;
   }
 
-  const hashPassword = await bcrypt.hash(password, 10);
+  const existing = await User.findOne({ email: email.toLowerCase() });
+  if (existing) {
+    res.status(409).json({ message: "An account with this email already exists" });
+    return;
+  }
 
-  user = await User.create({
-    name,
-    email,
+  const hashPassword = await bcrypt.hash(password, 12);
+  const user = await User.create({
+    name: name.trim(),
+    email: email.toLowerCase(),
     password: hashPassword,
   });
 
-  const token = jwt.sign({ _id: user._id }, process.env.JWT_SEC as string, {
-    expiresIn: "7d",
-  });
+  const token = issueToken(user._id);
+  res.cookie("pulse_token", token, COOKIE_OPTS);
 
-  res.status(201).json({
-    message: "User Registered",
-    user,
-    token,
-  });
+  // Never send password hash to client
+  const { password: _pw, ...safeUser } = user.toObject();
+  res.status(201).json({ message: "Account created successfully", user: safeUser });
 });
 
 export const loginUser = TryCatch(async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password } = req.body as { email: string; password: string };
 
-  const user = await User.findOne({ email });
+  if (!EMAIL_RE.test(email)) {
+    res.status(400).json({ message: "Invalid email address" });
+    return;
+  }
+  if (!password) {
+    res.status(400).json({ message: "Password is required" });
+    return;
+  }
 
+  const user = await User.findOne({ email: email.toLowerCase() });
+
+  // Generic message prevents email enumeration
   if (!user) {
-    res.status(404).json({
-      message: "User not exists",
-    });
+    res.status(401).json({ message: "Invalid email or password" });
     return;
   }
 
   const isMatch = await bcrypt.compare(password, user.password);
-
   if (!isMatch) {
-    res.status(400).json({
-      message: "Invalid Password",
-    });
+    res.status(401).json({ message: "Invalid email or password" });
     return;
   }
 
-  const token = jwt.sign({ _id: user._id }, process.env.JWT_SEC as string, {
-    expiresIn: "7d",
-  });
+  const token = issueToken(user._id);
+  res.cookie("pulse_token", token, COOKIE_OPTS);
 
-  res.status(200).json({
-    message: "Logged IN",
-    user,
-    token,
-  });
+  const { password: _pw, ...safeUser } = user.toObject();
+  res.status(200).json({ message: "Welcome back!", user: safeUser });
+});
+
+export const logoutUser = TryCatch(async (_req, res) => {
+  res.clearCookie("pulse_token", { path: "/" });
+  res.json({ message: "Logged out successfully" });
 });
 
 export const myProfile = TryCatch(async (req: AuthenticatedRequest, res) => {
@@ -336,3 +369,73 @@ export const addToPlaylist = TryCatch(
     });
   }
 );
+
+// ─── Mood Rooms ───────────────────────────────────────────────────────────────
+
+const VALID_ROOMS = ["coding", "gym", "roadtrip", "heartbreak", "late_night", "chill", "party", "focus"];
+
+export const joinRoom = TryCatch(async (req: AuthenticatedRequest, res) => {
+  const { room } = req.body as { room: string };
+  if (!VALID_ROOMS.includes(room)) {
+    res.status(400).json({ message: "Invalid room" }); return;
+  }
+  await User.findByIdAndUpdate(req.user?._id, { currentRoom: room, roomJoinedAt: new Date() });
+  res.json({ message: `Joined ${room} room`, currentRoom: room });
+});
+
+export const leaveRoom = TryCatch(async (req: AuthenticatedRequest, res) => {
+  await User.findByIdAndUpdate(req.user?._id, { $unset: { currentRoom: 1, roomJoinedAt: 1 } });
+  res.json({ message: "Left room", currentRoom: null });
+});
+
+export const getRoomStats = TryCatch(async (_req, res) => {
+  const stats: Record<string, number> = {};
+  await Promise.all(
+    VALID_ROOMS.map(async (room) => {
+      stats[room] = await User.countDocuments({ currentRoom: room });
+    })
+  );
+  res.json(stats);
+});
+
+// ─── Weather ──────────────────────────────────────────────────────────────────
+
+export const saveWeather = TryCatch(async (req: AuthenticatedRequest, res) => {
+  const { city, country, condition, description, temp, icon, weatherCode } = req.body as {
+    city: string; country: string; condition: string;
+    description: string; temp: number; icon: string; weatherCode: number;
+  };
+  await User.findByIdAndUpdate(req.user?._id, {
+    lastWeather: { city, country, condition, description, temp, icon, weatherCode, fetchedAt: new Date() },
+  });
+  res.json({ message: "Weather saved" });
+});
+
+// ─── Screenshot search history ────────────────────────────────────────────────
+
+export const saveScreenshotSearch = TryCatch(async (req: AuthenticatedRequest, res) => {
+  const { imageUrl, songTitle, artist, confidence, sourceType, tracksFound } = req.body as {
+    imageUrl: string; songTitle: string; artist: string;
+    confidence: string; sourceType: string; tracksFound: number;
+  };
+
+  const entry = { imageUrl, songTitle, artist, confidence, sourceType, tracksFound, searchedAt: new Date() };
+
+  await User.findByIdAndUpdate(req.user?._id, {
+    $push: {
+      screenshotSearches: {
+        $each: [entry],
+        $position: 0,  // newest first
+        $slice: 20,    // keep only last 20
+      },
+    },
+  });
+
+  res.json({ message: "Screenshot search saved", entry });
+});
+
+export const getScreenshotSearches = TryCatch(async (req: AuthenticatedRequest, res) => {
+  const user = await User.findById(req.user?._id).select("screenshotSearches");
+  if (!user) { res.status(404).json({ message: "User not found" }); return; }
+  res.json(user.screenshotSearches ?? []);
+});

@@ -1,4 +1,4 @@
-import { FaMusic } from "react-icons/fa";
+﻿import { FaMusic } from "react-icons/fa";
 import { useUserData } from "../context/UserContext";
 
 const PlayListCard = () => {
@@ -12,7 +12,7 @@ const PlayListCard = () => {
       <div
         className="w-11 h-11 flex items-center justify-center rounded-lg flex-shrink-0 transition-transform duration-200 group-hover:scale-105"
         style={{
-          background: "linear-gradient(135deg, #7c3aed 0%, #1db954 100%)",
+          background: "linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)",
         }}
       >
         <FaMusic className="text-white text-base" />

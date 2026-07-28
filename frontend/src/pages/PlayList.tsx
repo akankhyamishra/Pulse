@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import Layout from "../components/Layout";
 import { Song, useSongData } from "../context/SongContext";
 import { useUserData } from "../context/UserContext";
@@ -47,14 +47,14 @@ const PlayList = () => {
             className="flex gap-6 p-6 rounded-xl mb-6 mt-2 items-end animate-fade-in-up"
             style={{
               background:
-                "linear-gradient(180deg, rgba(124,58,237,0.22) 0%, rgba(124,58,237,0.04) 100%)",
+                "linear-gradient(180deg, rgba(8,145,178,0.22) 0%, rgba(8,145,178,0.04) 100%)",
             }}
           >
             <div
               className="w-44 h-44 rounded-lg flex-shrink-0 flex items-center justify-center shadow-2xl"
               style={{
-                background: "linear-gradient(135deg, #7c3aed, #1db954)",
-                boxShadow: "0 20px 60px rgba(124,58,237,0.4)",
+                background: "linear-gradient(135deg, #0891b2, #06b6d4)",
+                boxShadow: "0 20px 60px rgba(8,145,178,0.4)",
               }}
             >
               <FaHeart className="text-white text-5xl" />
@@ -66,7 +66,7 @@ const PlayList = () => {
               </h1>
               <p className="text-white/60 text-sm mb-4">{user?.name}'s favourite tracks</p>
               <div className="flex items-center gap-2 text-sm">
-                <span className="text-white font-semibold">Spotify Clone</span>
+                <span className="text-white font-semibold">PULSE</span>
                 <span className="text-white/40">•</span>
                 <span className="text-white/60">
                   {myPlayList.length} song{myPlayList.length !== 1 ? "s" : ""}
@@ -82,8 +82,8 @@ const PlayList = () => {
                 <button
                   className="w-14 h-14 rounded-full flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95"
                   style={{
-                    background: "#1db954",
-                    boxShadow: "0 8px 24px rgba(29,185,84,0.4)",
+                    background: "#06b6d4",
+                    boxShadow: "0 8px 24px rgba(6,182,212,0.4)",
                   }}
                   onClick={() => {
                     setSelectedSong(myPlayList[0].id);
@@ -125,7 +125,7 @@ const PlayList = () => {
                         </div>
                       ) : (
                         <>
-                          <span className={`text-sm group-hover:hidden ${isActive ? "text-green-500" : "text-white/40"}`}>
+                          <span className={`text-sm group-hover:hidden ${isActive ? "text-cyan-400" : "text-white/40"}`}>
                             {index + 1}
                           </span>
                           <FaPlay className="text-white text-xs hidden group-hover:block" />
@@ -140,7 +140,7 @@ const PlayList = () => {
                         className="w-10 h-10 rounded object-cover flex-shrink-0"
                         onError={(e) => { (e.target as HTMLImageElement).src = "/download.jpeg"; }}
                       />
-                      <span className={`text-sm font-medium truncate ${isActive ? "text-green-400" : "text-white"}`}>
+                      <span className={`text-sm font-medium truncate ${isActive ? "text-cyan-400" : "text-white"}`}>
                         {song.title}
                       </span>
                     </div>
@@ -160,12 +160,12 @@ const PlayList = () => {
                           title="Remove from liked"
                         >
                           {isLiked
-                            ? <FaHeart className="w-3.5 h-3.5 text-green-400" />
+                            ? <FaHeart className="w-3.5 h-3.5 text-pink-400" />
                             : <FaRegHeart className="w-3.5 h-3.5 text-white/50" />}
                         </button>
                       )}
                       <button
-                        className="text-white/30 hover:text-green-500 transition-colors opacity-0 group-hover:opacity-100"
+                        className="text-white/30 hover:text-cyan-400 transition-colors opacity-0 group-hover:opacity-100"
                         onClick={() => { setSelectedSong(song.id); setIsPlaying(true); }}
                       >
                         {isActive && isPlaying
@@ -181,7 +181,7 @@ const PlayList = () => {
             <div className="flex flex-col items-center justify-center h-48">
               <div
                 className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
-                style={{ background: "rgba(124,58,237,0.1)" }}
+                style={{ background: "rgba(8,145,178,0.1)" }}
               >
                 <FaHeart className="text-white/30 text-xl" />
               </div>

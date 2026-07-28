@@ -12,45 +12,39 @@ export const isAuth = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const token = req.headers.token as string;
+    // Primary: httpOnly cookie (secure, XSS-proof)
+    // Fallback: Authorization: Bearer <token> for API clients / mobile
+    const token: string | undefined =
+      req.cookies?.pulse_token ||
+      (req.headers.authorization?.startsWith("Bearer ")
+        ? req.headers.authorization.slice(7)
+        : undefined);
 
     if (!token) {
-      res.status(403).json({
-        message: "Please Login",
-      });
-
+      res.status(401).json({ message: "Please login to continue" });
       return;
     }
 
-    const decodedValue = jwt.verify(
+    const decoded = jwt.verify(
       token,
       process.env.JWT_SEC as string
     ) as JwtPayload;
 
-    if (!decodedValue || !decodedValue._id) {
-      res.status(403).json({
-        message: "Invalid token",
-      });
+    if (!decoded?._id) {
+      res.status(401).json({ message: "Invalid token" });
       return;
     }
 
-    const userId = decodedValue._id;
-
-    const user = await User.findById(userId).select("-password");
+    const user = await User.findById(decoded._id).select("-password");
 
     if (!user) {
-      res.status(403).json({
-        message: "User Not found",
-      });
-
+      res.status(401).json({ message: "Account not found" });
       return;
     }
 
     req.user = user;
     next();
-  } catch (error) {
-    res.status(403).json({
-      message: "Please Login",
-    });
+  } catch {
+    res.status(401).json({ message: "Session expired — please login again" });
   }
 };

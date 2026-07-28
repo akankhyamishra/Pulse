@@ -1,0 +1,97 @@
+# Render Blueprint — deploy all PULSE services in one click
+# https://render.com/docs/blueprint-spec
+#
+# External services (set as env vars — free tiers available):
+#   MongoDB  → MongoDB Atlas     https://cloud.mongodb.com
+#   RabbitMQ → CloudAMQP        https://www.cloudamqp.com  (LavinMQ free plan)
+#   Qdrant   → Qdrant Cloud     https://cloud.qdrant.io
+#   Cloudinary, YouTube API, Gemini API → set in ai-service env vars
+
+services:
+  # ── Redis (Render managed) ────────────────────────────────────
+  - type: redis
+    name: pulse-redis
+    plan: free
+    maxmemoryPolicy: allkeys-lru
+
+  # ── User Service (Node.js) ────────────────────────────────────
+  # NOTE: Render rootDir does not support spaces.
+  # Connect this service manually in the Render dashboard:
+  #   Root Directory: "user service"   Build: npm ci && npm run build   Start: node dist/index.js
+  - type: web
+    name: pulse-user-service
+    runtime: docker
+    dockerfilePath: ./user service/Dockerfile
+    dockerContext: ./user service
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: MONGO_URI
+        sync: false   # paste your Atlas URI in Render dashboard
+      - key: JWT_SEC
+        sync: false   # strong random secret, e.g. openssl rand -base64 48
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: pulse-redis
+          property: connectionString
+      - key: AMQP_URL
+        sync: false   # CloudAMQP → LavinMQ free plan AMQP URL
+      - key: CLIENT_URL
+        sync: false   # your Render frontend URL, e.g. https://pulse-frontend.onrender.com
+
+  # ── AI Service (Python / FastAPI) ────────────────────────────
+  - type: web
+    name: pulse-ai-service
+    runtime: docker
+    dockerfilePath: ./ai-service/Dockerfile
+    dockerContext: ./ai-service
+    plan: free
+    envVars:
+      - key: PORT
+        value: 8001
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: QDRANT_URL
+        sync: false   # Qdrant Cloud cluster URL
+      - key: QDRANT_API_KEY
+        sync: false
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: pulse-redis
+          property: connectionString
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: YOUTUBE_API_KEY
+        sync: false
+
+  # ── Frontend (React / Vite static site) ──────────────────────
+  - type: web
+    name: pulse-frontend
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
+    pullRequestPreviewsEnabled: true
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: no-cache
+      - path: /assets/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_AI_SERVICE_URL
+        sync: false   # e.g. https://pulse-ai-service.onrender.com

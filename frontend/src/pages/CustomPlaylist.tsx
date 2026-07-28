@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+﻿import { useParams, useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import { useUserData, PlaylistSong } from "../context/UserContext";
 import { useSongData, Song } from "../context/SongContext";
@@ -40,11 +40,11 @@ const CustomPlaylist = () => {
       {/* Header */}
       <div
         className="flex flex-col sm:flex-row items-center sm:items-end gap-6 p-8 rounded-2xl mb-6 animate-fade-in"
-        style={{ background: "linear-gradient(160deg,rgba(124,58,237,0.2) 0%,rgba(124,58,237,0.04) 100%)" }}
+        style={{ background: "linear-gradient(160deg,rgba(8,145,178,0.2) 0%,rgba(8,145,178,0.04) 100%)" }}
       >
         <div
           className="w-44 h-44 rounded-2xl flex-shrink-0 flex items-center justify-center overflow-hidden shadow-2xl"
-          style={{ background: cover ? undefined : "linear-gradient(135deg,#7c3aed,#1db954)", boxShadow: "0 20px 60px rgba(124,58,237,0.4)" }}
+          style={{ background: cover ? undefined : "linear-gradient(135deg,#0891b2,#06b6d4)", boxShadow: "0 20px 60px rgba(8,145,178,0.4)" }}
         >
           {cover
             ? <img src={cover} className="w-full h-full object-cover" />
@@ -63,7 +63,7 @@ const CustomPlaylist = () => {
           <button
             onClick={() => playSong(playlist.songs[0])}
             className="w-14 h-14 rounded-full flex items-center justify-center transition-all hover:scale-105 active:scale-95"
-            style={{ background: "#1db954", boxShadow: "0 8px 24px rgba(29,185,84,0.4)" }}
+            style={{ background: "#06b6d4", boxShadow: "0 8px 24px rgba(6,182,212,0.4)" }}
           >
             <FaPlay className="text-black text-lg ml-1" />
           </button>
