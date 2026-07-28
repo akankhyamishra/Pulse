@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import { useUserData } from "../context/UserContext";
@@ -7,17 +7,17 @@ import { FaPlay, FaSignOutAlt } from "react-icons/fa";
 import { HiUsers } from "react-icons/hi";
 
 const AI_SERVICE = import.meta.env.VITE_AI_SERVICE_URL ?? "http://localhost:8001";
-const USER_SERVICE = "http://localhost:5000";
+const USER_SERVICE = import.meta.env.VITE_USER_SERVICE_URL ?? "http://localhost:5000";
 
 const ROOMS = [
-  { id: "coding",     name: "Coding",      emoji: "ðŸ’»", color: "#3b82f6", grad: "from-blue-600 to-blue-900",      desc: "Deep work mode. Stay in the zone." },
-  { id: "gym",        name: "Gym",         emoji: "ðŸ‹ï¸", color: "#ef4444", grad: "from-red-600 to-red-900",        desc: "Push your limits. Turn it up." },
-  { id: "roadtrip",   name: "Road Trip",   emoji: "ðŸš—", color: "#f43f5e", grad: "from-orange-500 to-orange-900",  desc: "Windows down, miles ahead." },
-  { id: "heartbreak", name: "Heartbreak",  emoji: "ðŸ’”", color: "#8b5cf6", grad: "from-violet-600 to-violet-900",  desc: "Let it out. You're not alone." },
-  { id: "late_night", name: "Late Night",  emoji: "ðŸŒ™", color: "#1d4ed8", grad: "from-blue-900 to-slate-900",     desc: "City lights at 2am." },
-  { id: "chill",      name: "Chill Vibes", emoji: "â˜®ï¸", color: "#10b981", grad: "from-emerald-600 to-emerald-900", desc: "Laid back and easy." },
-  { id: "party",      name: "Party",       emoji: "ðŸŽ‰", color: "#f59e0b", grad: "from-amber-500 to-amber-900",    desc: "The night is young. Let's go." },
-  { id: "focus",      name: "Deep Focus",  emoji: "ðŸŽ¯", color: "#6366f1", grad: "from-indigo-600 to-indigo-900",  desc: "In the zone. Flow state." },
+  { id: "coding",     name: "Coding",      emoji: "💻", color: "#3b82f6", desc: "Deep work mode. Stay in the zone." },
+  { id: "gym",        name: "Gym",         emoji: "🏋️", color: "#ef4444", desc: "Push your limits. Turn it up." },
+  { id: "roadtrip",   name: "Road Trip",   emoji: "🚗", color: "#f97316", desc: "Windows down, miles ahead." },
+  { id: "heartbreak", name: "Heartbreak",  emoji: "💔", color: "#8b5cf6", desc: "Let it out. You're not alone." },
+  { id: "late_night", name: "Late Night",  emoji: "🌙", color: "#1d4ed8", desc: "City lights at 2am." },
+  { id: "chill",      name: "Chill Vibes", emoji: "☮️", color: "#10b981", desc: "Laid back and easy." },
+  { id: "party",      name: "Party",       emoji: "🎉", color: "#f59e0b", desc: "The night is young. Let's go." },
+  { id: "focus",      name: "Deep Focus",  emoji: "🎯", color: "#6366f1", desc: "In the zone. Flow state." },
 ] as const;
 
 type RoomId = typeof ROOMS[number]["id"];
@@ -53,19 +53,16 @@ export default function MoodRooms() {
   const [loadingPlaylist, setLoadingPlaylist] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Sync currentRoom from user
   useEffect(() => {
     setActiveRoom((user?.currentRoom as RoomId) ?? null);
   }, [user?.currentRoom]);
 
-  // Fetch stats on mount + poll every 10s for near-real-time member counts
   useEffect(() => {
     fetchStats();
     pollRef.current = setInterval(fetchStats, 10_000);
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, []);
 
-  // Load playlist when room changes
   useEffect(() => {
     if (activeRoom) fetchRoomPlaylist(activeRoom);
     else setPlaylist(null);
@@ -134,7 +131,10 @@ export default function MoodRooms() {
       {activeRoom && roomInfo && (
         <div
           className="mb-6 rounded-2xl p-5 flex items-center gap-4 animate-fade-in-up"
-          style={{ background: `linear-gradient(135deg, ${roomInfo.color}33, ${roomInfo.color}11)`, border: `1px solid ${roomInfo.color}44` }}
+          style={{
+            background: `linear-gradient(135deg, ${roomInfo.color}33, ${roomInfo.color}11)`,
+            border: `1px solid ${roomInfo.color}44`,
+          }}
         >
           <span className="text-4xl">{roomInfo.emoji}</span>
           <div className="flex-1 min-w-0">
@@ -161,17 +161,16 @@ export default function MoodRooms() {
             <button
               key={room.id}
               onClick={() => handleJoin(room.id)}
-              className={`relative rounded-2xl p-4 text-left transition-all duration-200 group overflow-hidden ${
-                isJoined ? "ring-2 scale-[1.02]" : "hover:scale-[1.02] hover:ring-1 ring-white/20"
-              }`}
+              className="relative rounded-2xl p-4 text-left transition-all duration-200 group overflow-hidden hover:scale-[1.02]"
               style={{
                 background: isJoined
                   ? `linear-gradient(135deg, ${room.color}55, ${room.color}22)`
                   : "rgba(255,255,255,0.05)",
-...(isJoined ? { boxShadow: `0 0 24px ${room.color}44`, outline: `2px solid ${room.color}` } : {}),
+                boxShadow: isJoined ? `0 0 24px ${room.color}44` : undefined,
+                outline: isJoined ? `2px solid ${room.color}` : undefined,
               }}
             >
-              {/* Glow blob */}
+              {/* Glow blob on hover */}
               <div
                 className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
                 style={{ background: `radial-gradient(circle at 50% 0%, ${room.color}22 0%, transparent 70%)` }}
@@ -203,12 +202,10 @@ export default function MoodRooms() {
         <section className="animate-fade-in-up">
           <div className="flex items-center gap-3 mb-4">
             <span className="text-xl">{roomInfo?.emoji}</span>
-            <h2 className="text-lg font-bold text-white">
-              {roomInfo?.name} Playlist
-            </h2>
+            <h2 className="text-lg font-bold text-white">{roomInfo?.name} Playlist</h2>
             {loadingPlaylist && (
               <div className="flex gap-0.5 items-center ml-2">
-                {[0,1,2].map((i) => (
+                {[0, 1, 2].map((i) => (
                   <div
                     key={i}
                     className="w-1 rounded-full animate-pulse"
@@ -269,10 +266,10 @@ export default function MoodRooms() {
         </section>
       )}
 
-      {/* Empty state when not in a room */}
+      {/* Empty state */}
       {!activeRoom && (
         <div className="flex flex-col items-center justify-center py-16 animate-fade-in">
-          <div className="text-5xl mb-4">ðŸŽ­</div>
+          <div className="text-5xl mb-4">🎭</div>
           <p className="text-white/50 font-semibold">Pick a room to start vibing</p>
           <p className="text-white/25 text-sm mt-1">Music plays automatically when you join</p>
         </div>

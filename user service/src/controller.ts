@@ -3,8 +3,42 @@ import { User, IPlaylistSong } from "./model.js";
 import TryCatch from "./TryCatch.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
+import nodemailer from "nodemailer";
 import { cacheGet, cacheSet, cacheDel } from "./redis.js";
 import { publishEvent } from "./events.js";
+
+function createMailTransport() {
+  return nodemailer.createTransport({
+    service: process.env.EMAIL_SERVICE || "gmail",
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
+}
+
+async function sendResetEmail(to: string, name: string, resetUrl: string) {
+  const transporter = createMailTransport();
+  await transporter.sendMail({
+    from: `"PULSE Music" <${process.env.EMAIL_USER}>`,
+    to,
+    subject: "Reset your PULSE password",
+    html: `
+      <div style="font-family:sans-serif;max-width:480px;margin:0 auto;background:#111;color:#fff;border-radius:12px;padding:32px">
+        <h2 style="color:#06b6d4;margin-top:0">Reset your password</h2>
+        <p>Hi ${name},</p>
+        <p>Click the button below to reset your password. This link expires in <strong>1 hour</strong>.</p>
+        <a href="${resetUrl}" style="display:inline-block;margin:24px 0;padding:12px 28px;background:#06b6d4;color:#000;font-weight:700;border-radius:8px;text-decoration:none">
+          Reset Password
+        </a>
+        <p style="color:#666;font-size:13px">If you did not request this, you can safely ignore this email.</p>
+        <hr style="border-color:#333;margin:24px 0"/>
+        <p style="color:#444;font-size:12px">PULSE Music · This link expires in 1 hour</p>
+      </div>
+    `,
+  });
+}
 
 // ─── Listening history ────────────────────────────────────────────────────────
 
@@ -298,9 +332,66 @@ export const logoutUser = TryCatch(async (_req, res) => {
 });
 
 export const myProfile = TryCatch(async (req: AuthenticatedRequest, res) => {
-  const user = req.user;
+  res.json(req.user);
+});
 
-  res.json(user);
+export const forgotPassword = TryCatch(async (req, res) => {
+  const { email } = req.body as { email: string };
+  if (!email || !EMAIL_RE.test(email)) {
+    res.status(400).json({ message: "Valid email is required" });
+    return;
+  }
+
+  const user = await User.findOne({ email: email.toLowerCase() });
+  // Always return the same message to prevent email enumeration
+  const genericMsg = "If that email is registered, a reset link has been sent.";
+
+  if (!user) {
+    res.json({ message: genericMsg });
+    return;
+  }
+
+  const rawToken = crypto.randomBytes(32).toString("hex");
+  const hashedToken = crypto.createHash("sha256").update(rawToken).digest("hex");
+
+  user.resetToken = hashedToken;
+  user.resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+  await user.save();
+
+  const resetUrl = `${process.env.CLIENT_URL}/reset-password/${rawToken}`;
+  await sendResetEmail(user.email, user.name, resetUrl);
+
+  res.json({ message: genericMsg });
+});
+
+export const resetPassword = TryCatch(async (req, res) => {
+  const { token } = req.params as { token: string };
+  const { password } = req.body as { password: string };
+
+  if (!password || password.length < 8) {
+    res.status(400).json({ message: "Password must be at least 8 characters" });
+    return;
+  }
+
+  const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+  const user = await User.findOne({
+    resetToken: hashedToken,
+    resetTokenExpiry: { $gt: new Date() },
+  }).select("+resetToken +resetTokenExpiry");
+
+  if (!user) {
+    res.status(400).json({ message: "Reset link is invalid or has expired" });
+    return;
+  }
+
+  user.password = await bcrypt.hash(password, 12);
+  user.resetToken = undefined;
+  user.resetTokenExpiry = undefined;
+  await user.save();
+
+  res.clearCookie("pulse_token", { path: "/" });
+  res.json({ message: "Password reset successfully. Please log in with your new password." });
 });
 
 export const toggleFollowArtist = TryCatch(

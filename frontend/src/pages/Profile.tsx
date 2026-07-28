@@ -9,7 +9,7 @@ import {
 } from "react-icons/fa";
 import axios from "axios";
 
-const server = "http://localhost:5000";
+const server = import.meta.env.VITE_USER_SERVICE_URL ?? "http://localhost:5000";
 
 interface ListenEvent {
   songId: string; songTitle: string; artistName: string;

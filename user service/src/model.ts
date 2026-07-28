@@ -54,6 +54,8 @@ export interface IUser extends Document {
   roomJoinedAt?: Date;
   lastWeather?: IWeatherData;
   screenshotSearches: IScreenshotSearch[];
+  resetToken?: string;
+  resetTokenExpiry?: Date;
 }
 
 const listenEventSchema = new Schema<IListenEvent>(
@@ -156,6 +158,8 @@ const schema: Schema<IUser> = new Schema(
     currentRoom:        { type: String, default: null },
     roomJoinedAt:       { type: Date },
     lastWeather:        { type: weatherSchema },
+    resetToken:         { type: String, select: false },
+    resetTokenExpiry:   { type: Date,   select: false },
   },
   { timestamps: true }
 );

@@ -40,9 +40,25 @@ services:
           name: pulse-redis
           property: connectionString
       - key: AMQP_URL
-        sync: false   # CloudAMQP → LavinMQ free plan AMQP URL
+        sync: false
       - key: CLIENT_URL
-        sync: false   # your Render frontend URL, e.g. https://pulse-frontend.onrender.com
+        sync: false   # e.g. https://pulse-frontend.onrender.com
+      - key: SERVER_URL
+        sync: false   # e.g. https://pulse-user-service.onrender.com
+      - key: EMAIL_SERVICE
+        value: gmail
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASS
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: FACEBOOK_APP_ID
+        sync: false
+      - key: FACEBOOK_APP_SECRET
+        sync: false
 
   # ── AI Service (Python / FastAPI) ────────────────────────────
   - type: web
@@ -94,5 +110,7 @@ services:
         source: /*
         destination: /index.html
     envVars:
+      - key: VITE_USER_SERVICE_URL
+        sync: false   # e.g. https://pulse-user-service.onrender.com
       - key: VITE_AI_SERVICE_URL
         sync: false   # e.g. https://pulse-ai-service.onrender.com

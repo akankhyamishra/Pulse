@@ -10,8 +10,8 @@ import toast, { Toaster } from "react-hot-toast";
 
 // All requests go with cookies — no token in localStorage
 const api = axios.create({
-  baseURL: "http://localhost:5000",
-  withCredentials: true,          // send/receive httpOnly cookie automatically
+  baseURL: import.meta.env.VITE_USER_SERVICE_URL ?? "http://localhost:5000",
+  withCredentials: true,
 });
 
 export interface PlaylistSong {

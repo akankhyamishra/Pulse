@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import cookieParser from "cookie-parser";
 import userRoutes from "./route.js";
 import cors from "cors";
+import passport from "./oauth.js";
 
 dotenv.config();
 
@@ -38,6 +39,7 @@ app.use(
 
 app.use(express.json());
 app.use(cookieParser());
+app.use(passport.initialize());
 
 app.use("/api/v1", userRoutes);
 

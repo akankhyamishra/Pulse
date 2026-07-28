@@ -353,9 +353,9 @@ const Login = () => {
               </div>
               <span className="text-white/35 text-xs">Remember me</span>
             </label>
-            <button type="button" className="text-xs text-white/28 hover:text-cyan-400 transition-colors">
+            <Link to="/forgot-password" className="text-xs text-white/28 hover:text-cyan-400 transition-colors">
               Forgot password?
-            </button>
+            </Link>
           </div>
 
           {/* Sign In */}
@@ -382,21 +382,27 @@ const Login = () => {
         </motion.div>
 
         {/* Social */}
-        <motion.div className="grid grid-cols-2 gap-3"
-          initial={{ opacity:0, y:14 }} animate={{ opacity:1, y:0 }} transition={{ delay:0.68 }}>
-          {[
-            { icon:<FaGoogle size={13} className="text-rose-400"/>,   label:"Google"   },
-            { icon:<FaFacebook size={14} className="text-blue-400"/>, label:"Facebook" },
-          ].map(({ icon, label }) => (
-            <motion.button key={label} type="button"
-              className="flex items-center justify-center gap-2.5 py-3 rounded-xl text-sm font-medium text-white/55 hover:text-white/90 transition-colors"
-              style={{ background:"rgba(255,255,255,0.035)", border:"1.5px solid rgba(255,255,255,0.07)" }}
-              whileHover={{ scale:1.022, background:"rgba(255,255,255,0.065)" }}
-              whileTap={{ scale:0.978 }}>
-              {icon}<span>{label}</span>
-            </motion.button>
-          ))}
-        </motion.div>
+        {(() => {
+          const base = import.meta.env.VITE_USER_SERVICE_URL ?? "http://localhost:5000";
+          const socials = [
+            { icon:<FaGoogle size={13} className="text-rose-400"/>,   label:"Google",   href:`${base}/api/v1/auth/google`   },
+            { icon:<FaFacebook size={14} className="text-blue-400"/>, label:"Facebook", href:`${base}/api/v1/auth/facebook` },
+          ];
+          return (
+            <motion.div className="grid grid-cols-2 gap-3"
+              initial={{ opacity:0, y:14 }} animate={{ opacity:1, y:0 }} transition={{ delay:0.68 }}>
+              {socials.map(({ icon, label, href }) => (
+                <motion.a key={label} href={href}
+                  className="flex items-center justify-center gap-2.5 py-3 rounded-xl text-sm font-medium text-white/55 hover:text-white/90 transition-colors no-underline"
+                  style={{ background:"rgba(255,255,255,0.035)", border:"1.5px solid rgba(255,255,255,0.07)" }}
+                  whileHover={{ scale:1.022, background:"rgba(255,255,255,0.065)" }}
+                  whileTap={{ scale:0.978 }}>
+                  {icon}<span>{label}</span>
+                </motion.a>
+              ))}
+            </motion.div>
+          );
+        })()}
 
         {/* Sign up */}
         <motion.p className="text-center text-[12px] text-white/28 mt-7"

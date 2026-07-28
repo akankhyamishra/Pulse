@@ -13,6 +13,8 @@ import Profile from "./pages/Profile";
 import CustomPlaylist from "./pages/CustomPlaylist";
 import AiDJ from "./pages/AiDJ";
 import MoodRooms from "./pages/MoodRooms";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 const App = () => {
   const { isAuth, loading } = useUserData();
@@ -35,6 +37,8 @@ const App = () => {
             <Route path="/admin/dashboard" element={isAuth ? <Admin /> : <Login />} />
             <Route path="/login" element={isAuth ? <Home /> : <Login />} />
             <Route path="/register" element={isAuth ? <Home /> : <Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password/:token" element={<ResetPassword />} />
           </Routes>
         </BrowserRouter>
       )}
