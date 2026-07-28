@@ -51,7 +51,6 @@ export default function MoodRooms() {
   );
   const [playlist, setPlaylist] = useState<RoomPlaylist | null>(null);
   const [loadingPlaylist, setLoadingPlaylist] = useState(false);
-  const [likedIds, setLikedIds] = useState<Set<string>>(new Set(user?.playlist ?? []));
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Sync currentRoom from user
@@ -169,8 +168,7 @@ export default function MoodRooms() {
                 background: isJoined
                   ? `linear-gradient(135deg, ${room.color}55, ${room.color}22)`
                   : "rgba(255,255,255,0.05)",
-                ringColor: room.color,
-                ...(isJoined ? { boxShadow: `0 0 24px ${room.color}44`, outline: `2px solid ${room.color}` } : {}),
+...(isJoined ? { boxShadow: `0 0 24px ${room.color}44`, outline: `2px solid ${room.color}` } : {}),
               }}
             >
               {/* Glow blob */}

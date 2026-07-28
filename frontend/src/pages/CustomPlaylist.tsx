@@ -2,8 +2,7 @@
 import Layout from "../components/Layout";
 import { useUserData, PlaylistSong } from "../context/UserContext";
 import { useSongData, Song } from "../context/SongContext";
-import { FaPlay, FaPause, FaTrash, FaMusic } from "react-icons/fa";
-import { MdArrowBack } from "react-icons/md";
+import { FaPlay, FaTrash, FaMusic } from "react-icons/fa";
 
 const CustomPlaylist = () => {
   const { id } = useParams<{ id: string }>();

@@ -1,5 +1,4 @@
 ﻿import { useState, useRef, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
 import { useSongData, Song } from "../context/SongContext";
 import { useUserData } from "../context/UserContext";
@@ -137,7 +136,6 @@ const AiDJ = () => {
 
   const chatEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const navigate = useNavigate();
 
   const { selectedSong, songs, setSelectedSong, setIsPlaying, addExternalSong, isPlaying } = useSongData();
   const { user } = useUserData();
