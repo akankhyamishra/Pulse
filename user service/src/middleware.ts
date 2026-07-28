@@ -3,7 +3,7 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 import { IUser, User } from "./model.js";
 
 export interface AuthenticatedRequest extends Request {
-  user?: IUser | null;
+  user?: IUser;
 }
 
 export const isAuth = async (
