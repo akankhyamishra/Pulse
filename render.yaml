@@ -13,6 +13,7 @@ services:
     name: pulse-redis
     plan: free
     maxmemoryPolicy: allkeys-lru
+    ipAllowList: []   # empty = only internal Render services can connect
 
   # ── User Service (Node.js) ────────────────────────────────────
   # NOTE: Render rootDir does not support spaces.
