@@ -239,11 +239,13 @@ export const removeSongFromPlaylist = TryCatch(async (req: AuthenticatedRequest,
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+const isProd = process.env.NODE_ENV === "production";
 const COOKIE_OPTS = {
   httpOnly: true,
-  secure:   process.env.NODE_ENV === "production",
-  sameSite: "lax" as const,
-  maxAge:   7 * 24 * 60 * 60 * 1000, // 7 days
+  secure:   isProd,
+  // "none" required for cross-domain cookies (frontend and API on different Render subdomains)
+  sameSite: (isProd ? "none" : "lax") as "none" | "lax",
+  maxAge:   7 * 24 * 60 * 60 * 1000,
   path:     "/",
 };
 
@@ -327,7 +329,7 @@ export const loginUser = TryCatch(async (req, res) => {
 });
 
 export const logoutUser = TryCatch(async (_req, res) => {
-  res.clearCookie("pulse_token", { path: "/" });
+  res.clearCookie("pulse_token", { path: "/", sameSite: isProd ? "none" : "lax", secure: isProd });
   res.json({ message: "Logged out successfully" });
 });
 
